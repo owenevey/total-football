@@ -38,12 +38,21 @@ const route = useRoute();
 
 const leagueStandings = ref(null);
 
+function getCurrentSoccerSeason() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  return month >= 7 ? year : year - 1;
+}
+
 const fetchData = async (id) => {
+  const season = getCurrentSoccerSeason();
   const result = await axios.get(
-    `https://v3.football.api-sports.io/standings?league=${id}&season=2023`,
+    `https://v3.football.api-sports.io/standings?league=${id}&season=${season}`,
     {
       headers: { "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY },
-    }
+    },
   );
 
   if (result.data.errors.rateLimit || result.data.errors.requests) {

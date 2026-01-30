@@ -38,7 +38,7 @@ const props = defineProps({
   leagues: Object,
 });
 
-const emit = defineEmits(['passApiError'])
+const emit = defineEmits(["passApiError"]);
 
 import { ref, toRefs } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -100,21 +100,32 @@ function getDifferentDate(dayOffset) {
   return formattedDate;
 }
 
+function getCurrentSoccerSeason() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  return month >= 7 ? year : year - 1;
+}
+
 const fetchGames = async (date) => {
   let fixtures = {};
+  const season = getCurrentSoccerSeason();
+
   for (const [name, id] of Object.entries(leagues.value)) {
     const result = await axios.get(
-      `https://v3.football.api-sports.io/fixtures?season=2023&league=${id}&from=${date}&to=${date}`,
+      `https://v3.football.api-sports.io/fixtures?season=${season}&league=${id}&from=${date}&to=${date}`,
       {
         headers: {
           "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY,
         },
-      }
+      },
     );
+    console.log(JSON.stringify(result.data, null, 2));
     if (result.data.response.length > 0) {
       fixtures[name] = result.data.response;
     } else if (result.data.errors.rateLimit || result.data.errors.requests) {
-      emit("passApiError")
+      emit("passApiError");
       fixtures = exampleGamesList;
       break;
     }
@@ -176,7 +187,11 @@ await fetchGames(currentDate.value);
 }
 
 .material-symbols-outlined {
-  font-variation-settings: "FILL" 200, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-variation-settings:
+    "FILL" 200,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
 
 #previousDay:hover,
