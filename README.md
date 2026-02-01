@@ -32,3 +32,4 @@ TotalFootball integrates with:
 
 ## 🏛️ Architecture Diagram
 ![AppPreview](https://raw.githubusercontent.com/owenevey/owenevey/refs/heads/main/assets/totalFootballArch.png)
+
