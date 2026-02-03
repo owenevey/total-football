@@ -104,7 +104,7 @@ const fetchGames = async (date) => {
     },
   );
 
-  if (result.data.errors.rateLimit || result.data.errors.requests) {
+  if (result.data.errors && Object.keys(result.data.errors).length) {
     emit("passApiError");
     gameData.value = exampleGamesList["Premier League"];
   } else {

@@ -51,6 +51,7 @@ function getCurrentSoccerSeason() {
 
 const fetchData = async (id) => {
   const season = getCurrentSoccerSeason();
+
   const result = await axios.get(
     `https://v3.football.api-sports.io/standings?league=${id}&season=${season}`,
     {
@@ -58,7 +59,7 @@ const fetchData = async (id) => {
     },
   );
 
-  if (result.data.errors.rateLimit || result.data.errors.requests) {
+  if (result.data.errors && Object.keys(result.data.errors).length) {
     emit("passApiError");
     leagueData.value = exampleLeagueInfo;
   } else {

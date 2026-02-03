@@ -121,10 +121,12 @@ const fetchGames = async (date) => {
         },
       },
     );
-    console.log(JSON.stringify(result.data, null, 2));
+    
     if (result.data.response.length > 0) {
       fixtures[name] = result.data.response;
-    } else if (result.data.errors.rateLimit || result.data.errors.requests) {
+    }
+
+    if (result.data.errors && Object.keys(result.data.errors).length) {
       emit("passApiError");
       fixtures = exampleGamesList;
       break;

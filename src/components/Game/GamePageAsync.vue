@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['passApiError'])
+const emit = defineEmits(["passApiError"]);
 
 import { ref } from "vue";
 import { useRoute } from "vue-router";
@@ -59,11 +59,11 @@ const getData = async () => {
     `https://v3.football.api-sports.io/fixtures?id=${route.query.id}`,
     {
       headers: { "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY },
-    }
+    },
   );
 
-  if (result.data.errors.rateLimit || result.data.errors.requests) {
-    emit("passApiError")
+  if (result.data.errors && Object.keys(result.data.errors).length) {
+    emit("passApiError");
     game.value = exampleGame;
   } else {
     game.value = result.data.response[0];
@@ -74,17 +74,13 @@ const getData = async () => {
     selectedPlayer.value = game.value.lineups[0].startXI[10].player.id;
   }
 
-  const eventsList = [];
-
-  for (const event of game.value.events) {
-    eventsList.push({
-      time: event.time.elapsed + (event.time.extra ?? 0),
-      type: event.type,
-      detail: event.detail,
-      player: event.player.name,
-      team: event.team.name === game.value.teams.home.name ? "home" : "away",
-    });
-  }
+  const eventsList = game.value.events.map((event) => ({
+    time: event.time.elapsed + (event.time.extra ?? 0),
+    type: event.type,
+    detail: event.detail,
+    player: event.player.name,
+    team: event.team.name === game.value.teams.home.name ? "home" : "away",
+  }));
 
   events.value = eventsList;
 };
