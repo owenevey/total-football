@@ -110,27 +110,31 @@ function getCurrentSoccerSeason() {
 
 const fetchGames = async (date) => {
   let fixtures = {};
-  const season = getCurrentSoccerSeason();
 
-  for (const [name, id] of Object.entries(leagues.value)) {
-    const result = await axios.get(
-      `https://v3.football.api-sports.io/fixtures?season=${season}&league=${id}&from=${date}&to=${date}`,
-      {
-        headers: {
-          "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY,
+  try {
+    const season = getCurrentSoccerSeason();
+
+    for (const [name, id] of Object.entries(leagues.value)) {
+      const result = await axios.get(
+        `https://v3.football.api-sports.io/fixtures?season=${season}&league=${id}&from=${date}&to=${date}`,
+        {
+          headers: {
+            "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY,
+          },
         },
-      },
-    );
-    
-    if (result.data.response.length > 0) {
-      fixtures[name] = result.data.response;
-    }
+      );
 
-    if (result.data.errors && Object.keys(result.data.errors).length) {
-      emit("passApiError");
-      fixtures = exampleGamesList;
-      break;
+      if (result.data.errors && Object.keys(result.data.errors).length > 0) {
+        throw new Error("API-Sports returned an error object");
+      }
+
+      if (result.data.response && result.data.response.length > 0) {
+        fixtures[name] = result.data.response;
+      }
     }
+  } catch (error) {
+    emit("passApiError");
+    fixtures = exampleGamesList;
   }
 
   gameData.value = fixtures;
