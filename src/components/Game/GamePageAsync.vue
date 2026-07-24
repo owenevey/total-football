@@ -55,34 +55,56 @@ const selectedPlayer = ref(null);
 const events = ref(null);
 
 const getData = async () => {
-  const result = await axios.get(
-    `https://v3.football.api-sports.io/fixtures?id=${route.query.id}`,
-    {
-      headers: { "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY },
-    },
-  );
+  try {
+    const result = await axios.get(
+      `https://v3.football.api-sports.io/fixtures?id=${route.query.id}`,
+      {
+        headers: {
+          "x-apisports-key": import.meta.env.VITE_APP_FOOTBALL_API_KEY,
+        },
+      },
+    );
 
-  if (result.data.errors && Object.keys(result.data.errors).length) {
+    if (result.data.errors && Object.keys(result.data.errors).length > 0) {
+      throw new Error("API-Sports returned an error object");
+    }
+
+    if (!result.data.response || result.data.response.length === 0) {
+      throw new Error("No game data found in response");
+    }
+
+    game.value = result.data.response[0];
+
+    hasLineups.value = game.value.lineups?.[0]?.startXI !== undefined;
+    if (hasLineups.value) {
+      selectedPlayer.value = game.value.lineups[0].startXI[10].player.id;
+    }
+
+    const eventsList = (game.value.events || []).map((event) => ({
+      time: event.time.elapsed + (event.time.extra ?? 0),
+      type: event.type,
+      detail: event.detail,
+      player: event.player.name,
+      team: event.team.name === game.value.teams.home.name ? "home" : "away",
+    }));
+
+    events.value = eventsList;
+  } catch (error) {
     emit("passApiError");
     game.value = exampleGame;
-  } else {
-    game.value = result.data.response[0];
+
+    hasLineups.value = game.value.lineups?.[0]?.startXI !== undefined;
+    if (hasLineups.value) {
+      selectedPlayer.value = game.value.lineups[0].startXI[10]?.player?.id;
+    }
+    events.value = (game.value.events || []).map((event) => ({
+      time: event.time.elapsed + (event.time.extra ?? 0),
+      type: event.type,
+      detail: event.detail,
+      player: event.player.name,
+      team: event.team.name === game.value.teams.home.name ? "home" : "away",
+    }));
   }
-
-  hasLineups.value = game.value.lineups[0]?.startXI !== undefined;
-  if (hasLineups.value) {
-    selectedPlayer.value = game.value.lineups[0].startXI[10].player.id;
-  }
-
-  const eventsList = game.value.events.map((event) => ({
-    time: event.time.elapsed + (event.time.extra ?? 0),
-    type: event.type,
-    detail: event.detail,
-    player: event.player.name,
-    team: event.team.name === game.value.teams.home.name ? "home" : "away",
-  }));
-
-  events.value = eventsList;
 };
 
 await getData();
